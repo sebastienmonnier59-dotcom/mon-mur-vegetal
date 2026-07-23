@@ -169,6 +169,11 @@ body.landing .hero .container { padding-top: 70px; padding-bottom: 70px; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 980px) {
+  /* Bandeau : une seule accroche sur mobile, sur une ligne compacte */
+  .topbar { font-size: 11.5px; padding: 6px 0; letter-spacing: .2px; }
+  .topbar .container { flex-wrap: nowrap; justify-content: center; gap: 0; padding-left: 14px; padding-right: 14px; }
+  .topbar span:not(:first-child) { display: none; }
+  .topbar span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .grid-3, .grid-2, .steps, footer.site .cols { grid-template-columns: 1fr; gap: 30px; }
   .hero h1 { font-size: 33px; }
   .hero .container { padding-top: 72px; padding-bottom: 72px; }
