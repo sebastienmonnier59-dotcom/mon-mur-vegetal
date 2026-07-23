@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /devis-express.html
+
+Sitemap: https://www.mon-mur-vegetal.fr/sitemap.xml
