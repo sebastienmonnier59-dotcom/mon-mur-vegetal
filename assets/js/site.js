@@ -8,7 +8,7 @@ var SITE_ID = "mon-mur-vegetal.fr";
    (Google Ads > Objectifs > Conversions > l'action > "Etiquette de conversion").
    Tant qu'il est vide, seul l'evenement generate_lead (GA4) est envoye. */
 var ADS_ID = "AW-18352922263";
-var ADS_CONVERSION_LABEL = "";
+var ADS_CONVERSION_LABEL = "mFpNCMLhiNccEJe9ra9E";
 
 document.addEventListener("DOMContentLoaded", function () {
   var burger = document.querySelector(".burger");
@@ -104,7 +104,7 @@ function initDevis() {
         box.querySelector(".merci").style.display = "block";
         if (typeof gtag === "function") {
           gtag("event", "generate_lead", { site: SITE_ID });
-          if (ADS_CONVERSION_LABEL) gtag("event", "conversion", { send_to: ADS_ID + "/" + ADS_CONVERSION_LABEL });
+          if (ADS_CONVERSION_LABEL) gtag("event", "conversion", { send_to: ADS_ID + "/" + ADS_CONVERSION_LABEL, value: 1.0, currency: "EUR" });
         }
       });
   });
