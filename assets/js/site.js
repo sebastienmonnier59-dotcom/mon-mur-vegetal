@@ -3,6 +3,13 @@
 var LEAD_ENDPOINT = "https://script.google.com/macros/s/AKfycbxHv-y7WQSPsqpFnRtcS7OygjE1gRAjlRGKE3GqrXhI1pGzTaNVhtzXxZWq4y1cIlcH5Q/exec";
 var SITE_ID = "mon-mur-vegetal.fr";
 
+/* Google Ads — conversion "lead" a l'envoi du formulaire.
+   Coller le libelle de l'action de conversion entre les guillemets
+   (Google Ads > Objectifs > Conversions > l'action > "Etiquette de conversion").
+   Tant qu'il est vide, seul l'evenement generate_lead (GA4) est envoye. */
+var ADS_ID = "AW-18352922263";
+var ADS_CONVERSION_LABEL = "";
+
 document.addEventListener("DOMContentLoaded", function () {
   var burger = document.querySelector(".burger");
   var menu = document.querySelector("nav.menu");
@@ -95,7 +102,10 @@ function initDevis() {
       .finally(function () {
         box.querySelector(".devis-inner").style.display = "none";
         box.querySelector(".merci").style.display = "block";
-        if (typeof gtag === "function") gtag("event", "generate_lead", { site: SITE_ID });
+        if (typeof gtag === "function") {
+          gtag("event", "generate_lead", { site: SITE_ID });
+          if (ADS_CONVERSION_LABEL) gtag("event", "conversion", { send_to: ADS_ID + "/" + ADS_CONVERSION_LABEL });
+        }
       });
   });
 
