@@ -119,7 +119,9 @@ function ensureHeaders_(sheet) {
 
 function notify_(d) {
   var link = 'https://docs.google.com/spreadsheets/d/' + (SHEETS[d.site] || '') + '/edit';
-  var detail =
+
+  // Version texte (repli pour les clients sans HTML)
+  var text =
     'Nom       : ' + v_(d.nom) + '\n' +
     'Telephone : ' + v_(d.telephone) + '\n' +
     'Email     : ' + v_(d.email) + '\n' +
@@ -137,18 +139,89 @@ function notify_(d) {
   // Notif interne (tous sites)
   if (OWNER_EMAIL) {
     MailApp.sendEmail(OWNER_EMAIL,
-      '🔥 Nouveau lead ' + v_(d.site) + ' — ' + v_(d.type_projet),
-      detail);
+      '🌿 Nouveau lead ' + v_(d.site) + ' — ' + v_(d.type_projet),
+      text,
+      { name: 'Leads · mon-mur-vegetal', htmlBody: emailHtml_(d, link, '') });
   }
 
   // Notif partenaire (si configure pour ce site)
   var partner = PARTNERS[d.site];
   if (partner && partner.email) {
+    var intro = 'Un nouveau lead vient d\'arriver via ' + v_(d.site) + '.';
     MailApp.sendEmail(partner.email,
       'Nouveau lead a traiter — ' + v_(d.site),
-      'Bonjour,\n\nUn nouveau lead vient d\'arriver via ' + v_(d.site) + ' :\n\n' +
-      detail + '\n\nBonne journee,\nSebastien');
+      text,
+      { name: 'Verdalys', htmlBody: emailHtml_(d, link, intro) });
   }
+}
+
+/* Email HTML aux couleurs du site. intro = phrase d'accroche (partenaire) ou ''. */
+function emailHtml_(d, link, intro) {
+  var projet = [
+    row_('Type de projet', v_(d.type_projet)),
+    row_('Interieur / Ext.', v_(d.implantation)),
+    row_('Surface', v_(d.surface)),
+    row_('Contexte', v_(d.contexte)),
+    row_('Budget', v_(d.budget)),
+    row_('Delai', v_(d.delai))
+  ].join('');
+
+  var tel = (d.telephone ? '<a href="tel:' + esc_(String(d.telephone).replace(/[^0-9+]/g, '')) +
+    '" style="color:#2f5c44;text-decoration:none;">' + esc_(d.telephone) + '</a>' : '—');
+  var mail = (d.email ? '<a href="mailto:' + esc_(d.email) +
+    '" style="color:#2f5c44;text-decoration:none;">' + esc_(d.email) + '</a>' : '—');
+  var contact = [
+    row_('Nom', v_(d.nom)),
+    row_('Telephone', tel),
+    row_('Email', mail),
+    row_('CP / ville', v_(d.code_postal))
+  ].join('');
+
+  var details = '';
+  if (d.details) {
+    details =
+      '<tr><td style="padding:6px 30px 4px;font:600 11px/1 Helvetica,Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#6f7873;">Precisions</td></tr>' +
+      '<tr><td style="padding:0 30px 18px;"><div style="background:#f7f6f1;border:1px solid #eeeee6;padding:14px 16px;color:#222824;font:400 15px/1.6 Helvetica,Arial,sans-serif;">' +
+      esc_(d.details) + '</div></td></tr>';
+  }
+
+  var introBlock = intro
+    ? '<tr><td style="padding:20px 30px 0;font:400 15px/1.6 Helvetica,Arial,sans-serif;color:#222824;">' + esc_(intro) + '</td></tr>'
+    : '';
+
+  return '' +
+  '<div style="background:#f7f6f1;padding:26px 12px;font-family:Helvetica,Arial,sans-serif;">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #dfe2da;">' +
+      '<tr><td style="background:#1d3a2b;padding:24px 30px;">' +
+        '<div style="color:#9db89f;font-size:11px;letter-spacing:3px;text-transform:uppercase;">Nouveau lead &middot; ' + esc_(v_(d.site)) + '</div>' +
+        '<div style="color:#ffffff;font:400 23px/1.3 Georgia,\'Times New Roman\',serif;margin-top:8px;">' + esc_(v_(d.type_projet)) + '</div>' +
+      '</td></tr>' +
+      introBlock +
+      '<tr><td style="padding:22px 30px 2px;font:600 11px/1 Helvetica,Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#6f7873;">Le projet</td></tr>' +
+      '<tr><td style="padding:0 30px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + projet + '</table></td></tr>' +
+      '<tr><td style="padding:20px 30px 2px;font:600 11px/1 Helvetica,Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#6f7873;">Contact client</td></tr>' +
+      '<tr><td style="padding:0 30px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + contact + '</table></td></tr>' +
+      details +
+      '<tr><td style="padding:10px 30px 26px;">' +
+        '<a href="' + link + '" style="display:inline-block;background:#1d3a2b;color:#ffffff;text-decoration:none;padding:13px 24px;font:600 13px/1 Helvetica,Arial,sans-serif;letter-spacing:1px;">Ouvrir la feuille de suivi &rarr;</a>' +
+      '</td></tr>' +
+      '<tr><td style="background:#f7f6f1;border-top:1px solid #dfe2da;padding:15px 30px;color:#6f7873;font:400 12px/1.5 Helvetica,Arial,sans-serif;">' +
+        'Verdalys &middot; ' + esc_(v_(d.site)) + '&nbsp;&middot;&nbsp; Page : ' + esc_(v_(d.page)) +
+      '</td></tr>' +
+    '</table>' +
+  '</div>';
+}
+
+function row_(label, value) {
+  return '<tr>' +
+    '<td style="padding:9px 0;border-bottom:1px solid #eeeee6;color:#6f7873;font:400 12px/1.4 Helvetica,Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;width:140px;vertical-align:top;">' + label + '</td>' +
+    '<td style="padding:9px 0;border-bottom:1px solid #eeeee6;color:#222824;font:400 15px/1.5 Helvetica,Arial,sans-serif;">' + value + '</td>' +
+    '</tr>';
+}
+
+function esc_(s) {
+  s = (s == null ? '' : String(s));
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function v_(x) { return (x == null || x === '') ? '—' : String(x); }
