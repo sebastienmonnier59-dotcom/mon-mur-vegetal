@@ -149,23 +149,18 @@ function notify_(d) {
     'Suivi     : ' + link;
 
   var t = theme_(d.site);
-
-  // Notif interne (tous sites) — habillage aux couleurs du site concerne
-  if (OWNER_EMAIL) {
-    MailApp.sendEmail(OWNER_EMAIL,
-      t.emoji + ' Nouveau lead ' + v_(d.site) + ' — ' + v_(d.type_projet),
-      text,
-      { name: t.brand + ' · Leads', htmlBody: emailHtml_(d, link, '') });
-  }
-
-  // Notif partenaire (si configure pour ce site)
   var partner = PARTNERS[d.site];
+  var subject = t.emoji + ' Nouveau lead ' + v_(d.site) + ' — ' + v_(d.type_projet);
+
   if (partner && partner.email) {
-    var intro = 'Un nouveau lead vient d\'arriver via ' + v_(d.site) + '.';
-    MailApp.sendEmail(partner.email,
-      'Nouveau lead a traiter — ' + v_(d.site),
-      text,
-      { name: t.brand, htmlBody: emailHtml_(d, link, intro) });
+    // Un seul mail : au partenaire, avec le proprietaire (OWNER_EMAIL) en copie.
+    MailApp.sendEmail(partner.email, subject, text,
+      { name: t.brand, cc: OWNER_EMAIL,
+        htmlBody: emailHtml_(d, link, 'Un nouveau lead vient d\'arriver via ' + v_(d.site) + '.') });
+  } else if (OWNER_EMAIL) {
+    // Aucun partenaire configure : mail au proprietaire seul.
+    MailApp.sendEmail(OWNER_EMAIL, subject, text,
+      { name: t.brand + ' · Leads', htmlBody: emailHtml_(d, link, '') });
   }
 }
 
