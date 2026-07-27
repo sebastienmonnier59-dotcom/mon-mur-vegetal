@@ -28,6 +28,18 @@ var PARTNERS = {
   // ex. plus tard : 'bassin-piscine-naturelle.fr': { email: '...', name: '...' }
 };
 
+// Theme email propre a chaque site (couleurs reprises de chaque site).
+// header = fond du bandeau, headText = texte clair sur le bandeau,
+// accent = liens, panel = fond clair, line/line2 = filets.
+var THEMES = {
+  'mon-mur-vegetal.fr':          { brand: 'Verdalys',     emoji: '🌿', header: '#1d3a2b', headText: '#9db89f', accent: '#2f5c44', panel: '#f7f6f1', line: '#dfe2da', line2: '#eeeee6' },
+  'chambre-froide-pro.fr':       { brand: 'Frigalis',     emoji: '❄️', header: '#0b2e4a', headText: '#8fc0e6', accent: '#14507e', panel: '#eef5fb', line: '#d3dfe9', line2: '#dcebf7' },
+  'equipement-pizzeria.fr':      { brand: 'Fornetto Pro', emoji: '🍕', header: '#241a16', headText: '#e8a05a', accent: '#a8321f', panel: '#faf4ea', line: '#e2d4c0', line2: '#f2e6d5' },
+  'bassin-piscine-naturelle.fr': { brand: 'AquaJardin',   emoji: '💧', header: '#0f3f46', headText: '#7fc9cf', accent: '#176b76', panel: '#e6f4f4', line: '#d9e6e6', line2: '#d9e6e6' }
+};
+var THEME_DEFAULT = { brand: 'Lead', emoji: '📩', header: '#1d3a2b', headText: '#9db89f', accent: '#2f5c44', panel: '#f7f6f1', line: '#dfe2da', line2: '#eeeee6' };
+function theme_(site) { return THEMES[site] || THEME_DEFAULT; }
+
 // Colonnes cibles, dans l'ordre souhaite. Utilise tel quel si la feuille est
 // vide ; sur une feuille existante, seules les colonnes manquantes sont ajoutees
 // (a la fin) — voir note "Commentaire" dans le README.
@@ -136,12 +148,14 @@ function notify_(d) {
     'Page      : ' + v_(d.page) + '\n' +
     'Suivi     : ' + link;
 
-  // Notif interne (tous sites)
+  var t = theme_(d.site);
+
+  // Notif interne (tous sites) — habillage aux couleurs du site concerne
   if (OWNER_EMAIL) {
     MailApp.sendEmail(OWNER_EMAIL,
-      '🌿 Nouveau lead ' + v_(d.site) + ' — ' + v_(d.type_projet),
+      t.emoji + ' Nouveau lead ' + v_(d.site) + ' — ' + v_(d.type_projet),
       text,
-      { name: 'Leads · mon-mur-vegetal', htmlBody: emailHtml_(d, link, '') });
+      { name: t.brand + ' · Leads', htmlBody: emailHtml_(d, link, '') });
   }
 
   // Notif partenaire (si configure pour ce site)
@@ -151,37 +165,41 @@ function notify_(d) {
     MailApp.sendEmail(partner.email,
       'Nouveau lead a traiter — ' + v_(d.site),
       text,
-      { name: 'Verdalys', htmlBody: emailHtml_(d, link, intro) });
+      { name: t.brand, htmlBody: emailHtml_(d, link, intro) });
   }
 }
 
-/* Email HTML aux couleurs du site. intro = phrase d'accroche (partenaire) ou ''. */
+/* Email HTML aux couleurs du site (theme_(d.site)). intro = accroche partenaire ou ''. */
 function emailHtml_(d, link, intro) {
+  var t = theme_(d.site);
+
   var projet = [
-    row_('Type de projet', v_(d.type_projet)),
-    row_('Interieur / Ext.', v_(d.implantation)),
-    row_('Surface', v_(d.surface)),
-    row_('Contexte', v_(d.contexte)),
-    row_('Budget', v_(d.budget)),
-    row_('Delai', v_(d.delai))
+    row_('Type de projet', v_(d.type_projet), t),
+    row_('Interieur / Ext.', v_(d.implantation), t),
+    row_('Surface', v_(d.surface), t),
+    row_('Contexte', v_(d.contexte), t),
+    row_('Budget', v_(d.budget), t),
+    row_('Delai', v_(d.delai), t)
   ].join('');
 
   var tel = (d.telephone ? '<a href="tel:' + esc_(String(d.telephone).replace(/[^0-9+]/g, '')) +
-    '" style="color:#2f5c44;text-decoration:none;">' + esc_(d.telephone) + '</a>' : '—');
+    '" style="color:' + t.accent + ';text-decoration:none;">' + esc_(d.telephone) + '</a>' : '—');
   var mail = (d.email ? '<a href="mailto:' + esc_(d.email) +
-    '" style="color:#2f5c44;text-decoration:none;">' + esc_(d.email) + '</a>' : '—');
+    '" style="color:' + t.accent + ';text-decoration:none;">' + esc_(d.email) + '</a>' : '—');
   var contact = [
-    row_('Nom', v_(d.nom)),
-    row_('Telephone', tel),
-    row_('Email', mail),
-    row_('CP / ville', v_(d.code_postal))
+    row_('Nom', v_(d.nom), t),
+    row_('Telephone', tel, t),
+    row_('Email', mail, t),
+    row_('CP / ville', v_(d.code_postal), t)
   ].join('');
+
+  var lab = 'font:600 11px/1 Helvetica,Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#6f7873;';
 
   var details = '';
   if (d.details) {
     details =
-      '<tr><td style="padding:6px 30px 4px;font:600 11px/1 Helvetica,Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#6f7873;">Precisions</td></tr>' +
-      '<tr><td style="padding:0 30px 18px;"><div style="background:#f7f6f1;border:1px solid #eeeee6;padding:14px 16px;color:#222824;font:400 15px/1.6 Helvetica,Arial,sans-serif;">' +
+      '<tr><td style="padding:6px 30px 4px;' + lab + '">Precisions</td></tr>' +
+      '<tr><td style="padding:0 30px 18px;"><div style="background:' + t.panel + ';border:1px solid ' + t.line2 + ';padding:14px 16px;color:#222824;font:400 15px/1.6 Helvetica,Arial,sans-serif;">' +
       esc_(d.details) + '</div></td></tr>';
   }
 
@@ -190,32 +208,33 @@ function emailHtml_(d, link, intro) {
     : '';
 
   return '' +
-  '<div style="background:#f7f6f1;padding:26px 12px;font-family:Helvetica,Arial,sans-serif;">' +
-    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #dfe2da;">' +
-      '<tr><td style="background:#1d3a2b;padding:24px 30px;">' +
-        '<div style="color:#9db89f;font-size:11px;letter-spacing:3px;text-transform:uppercase;">Nouveau lead &middot; ' + esc_(v_(d.site)) + '</div>' +
+  '<div style="background:' + t.panel + ';padding:26px 12px;font-family:Helvetica,Arial,sans-serif;">' +
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid ' + t.line + ';">' +
+      '<tr><td style="background:' + t.header + ';padding:24px 30px;">' +
+        '<div style="color:' + t.headText + ';font-size:11px;letter-spacing:3px;text-transform:uppercase;">' + esc_(t.brand) + ' &middot; nouveau lead</div>' +
         '<div style="color:#ffffff;font:400 23px/1.3 Georgia,\'Times New Roman\',serif;margin-top:8px;">' + esc_(v_(d.type_projet)) + '</div>' +
       '</td></tr>' +
       introBlock +
-      '<tr><td style="padding:22px 30px 2px;font:600 11px/1 Helvetica,Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#6f7873;">Le projet</td></tr>' +
+      '<tr><td style="padding:22px 30px 2px;' + lab + '">Le projet</td></tr>' +
       '<tr><td style="padding:0 30px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + projet + '</table></td></tr>' +
-      '<tr><td style="padding:20px 30px 2px;font:600 11px/1 Helvetica,Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#6f7873;">Contact client</td></tr>' +
+      '<tr><td style="padding:20px 30px 2px;' + lab + '">Contact client</td></tr>' +
       '<tr><td style="padding:0 30px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">' + contact + '</table></td></tr>' +
       details +
       '<tr><td style="padding:10px 30px 26px;">' +
-        '<a href="' + link + '" style="display:inline-block;background:#1d3a2b;color:#ffffff;text-decoration:none;padding:13px 24px;font:600 13px/1 Helvetica,Arial,sans-serif;letter-spacing:1px;">Ouvrir la feuille de suivi &rarr;</a>' +
+        '<a href="' + link + '" style="display:inline-block;background:' + t.header + ';color:#ffffff;text-decoration:none;padding:13px 24px;font:600 13px/1 Helvetica,Arial,sans-serif;letter-spacing:1px;">Ouvrir la feuille de suivi &rarr;</a>' +
       '</td></tr>' +
-      '<tr><td style="background:#f7f6f1;border-top:1px solid #dfe2da;padding:15px 30px;color:#6f7873;font:400 12px/1.5 Helvetica,Arial,sans-serif;">' +
-        'Verdalys &middot; ' + esc_(v_(d.site)) + '&nbsp;&middot;&nbsp; Page : ' + esc_(v_(d.page)) +
+      '<tr><td style="background:' + t.panel + ';border-top:1px solid ' + t.line + ';padding:15px 30px;color:#6f7873;font:400 12px/1.5 Helvetica,Arial,sans-serif;">' +
+        esc_(t.brand) + ' &middot; ' + esc_(v_(d.site)) + '&nbsp;&middot;&nbsp; Page : ' + esc_(v_(d.page)) +
       '</td></tr>' +
     '</table>' +
   '</div>';
 }
 
-function row_(label, value) {
+function row_(label, value, t) {
+  var line = (t && t.line2) ? t.line2 : '#eeeee6';
   return '<tr>' +
-    '<td style="padding:9px 0;border-bottom:1px solid #eeeee6;color:#6f7873;font:400 12px/1.4 Helvetica,Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;width:140px;vertical-align:top;">' + label + '</td>' +
-    '<td style="padding:9px 0;border-bottom:1px solid #eeeee6;color:#222824;font:400 15px/1.5 Helvetica,Arial,sans-serif;">' + value + '</td>' +
+    '<td style="padding:9px 0;border-bottom:1px solid ' + line + ';color:#6f7873;font:400 12px/1.4 Helvetica,Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;width:140px;vertical-align:top;">' + label + '</td>' +
+    '<td style="padding:9px 0;border-bottom:1px solid ' + line + ';color:#222824;font:400 15px/1.5 Helvetica,Arial,sans-serif;">' + value + '</td>' +
     '</tr>';
 }
 
@@ -231,13 +250,43 @@ function out(m) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/* ============================ TEST ============================ */
-function testLead() {
+/* ============================ TESTS PAR SITE ============================ */
+// Lance la fonction du site voulu depuis l'editeur Apps Script (menu ▶).
+// Chaque test ecrit une ligne dans LE sheet du site + envoie l'email theme.
+
+function testLeadMurVegetal() {
   doPost({ parameter: {
-    site: 'mon-mur-vegetal.fr', nom: 'Test Durand', telephone: '06 12 34 56 78',
-    email: 'test@exemple.fr', code_postal: '59000', type_projet: 'Mur vegetal stabilise',
+    site: 'mon-mur-vegetal.fr', nom: 'TEST Verdalys (a supprimer)', telephone: '0612345678',
+    email: 'sebastien.monnier59@gmail.com', code_postal: '59000', type_projet: 'Mur vegetal stabilise',
     implantation: 'Interieur', surface: '5 a 15 m2', contexte: 'Bureaux entreprise',
-    details: 'Test', budget: '2000 a 5000 EUR', delai: '1 a 3 mois',
-    page: '/devis-mur-vegetal.html'
+    details: 'Test complet du formulaire mur vegetal', budget: '2000 a 5000 EUR',
+    delai: '1 a 3 mois', page: '/devis-mur-vegetal.html'
+  }});
+}
+
+function testLeadChambreFroide() {
+  doPost({ parameter: {
+    site: 'chambre-froide-pro.fr', nom: 'TEST Frigalis (a supprimer)', telephone: '0612345678',
+    email: 'sebastien.monnier59@gmail.com', code_postal: '59000', type_projet: 'Chambre froide positive',
+    contexte: 'Restaurant', details: 'Test complet chambre froide', budget: '5000 a 10000 EUR',
+    delai: '1 a 3 mois', page: '/devis.html'
+  }});
+}
+
+function testLeadPizzeria() {
+  doPost({ parameter: {
+    site: 'equipement-pizzeria.fr', nom: 'TEST Fornetto (a supprimer)', telephone: '0612345678',
+    email: 'sebastien.monnier59@gmail.com', code_postal: '59000', type_projet: 'Four a pizza professionnel',
+    contexte: 'Pizzeria', details: 'Test complet equipement pizzeria', budget: 'Plus de 10000 EUR',
+    delai: 'Moins d un mois', page: '/devis.html'
+  }});
+}
+
+function testLeadBassin() {
+  doPost({ parameter: {
+    site: 'bassin-piscine-naturelle.fr', nom: 'TEST AquaJardin (a supprimer)', telephone: '0612345678',
+    email: 'sebastien.monnier59@gmail.com', code_postal: '59000', type_projet: 'Bassin de baignade naturelle',
+    contexte: 'Particulier', details: 'Test complet bassin naturel', budget: 'Plus de 10000 EUR',
+    delai: '3 a 6 mois', page: '/devis.html'
   }});
 }
