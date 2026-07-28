@@ -204,3 +204,6 @@ body.landing .hero .container { padding-top: 70px; padding-bottom: 70px; }
   .cta-band { padding: 46px 26px; }
   .devis-box { padding: 28px; }
 }
+
+/* Ancre du formulaire integre : degage le header collant */
+#devis, #devis-inline { scroll-margin-top: 96px; }
