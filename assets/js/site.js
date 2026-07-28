@@ -28,7 +28,7 @@ function memoriserProvenance() {
   try {
     if (sessionStorage.getItem("vd_landing")) return;   /* deja enregistre */
     var p = new URLSearchParams(location.search);
-    sessionStorage.setItem("vd_landing", location.pathname + location.search);
+    sessionStorage.setItem("vd_landing", location.origin + location.pathname + location.search);
     sessionStorage.setItem("vd_referrer", document.referrer || "");
     sessionStorage.setItem("vd_gclid", p.get("gclid") || "");
     sessionStorage.setItem("vd_utm_source", p.get("utm_source") || "");
@@ -41,7 +41,7 @@ function memoriserProvenance() {
 function lireProvenance() {
   var o = {};
   try {
-    o.landing = sessionStorage.getItem("vd_landing") || (location.pathname + location.search);
+    o.landing = sessionStorage.getItem("vd_landing") || (location.origin + location.pathname + location.search);
     o.referrer = sessionStorage.getItem("vd_referrer") || "";
     o.gclid = sessionStorage.getItem("vd_gclid") || "";
     o.utm_source = sessionStorage.getItem("vd_utm_source") || "";
@@ -49,7 +49,7 @@ function lireProvenance() {
     o.utm_campaign = sessionStorage.getItem("vd_utm_campaign") || "";
     o.utm_term = sessionStorage.getItem("vd_utm_term") || "";
   } catch (e) {
-    o.landing = location.pathname + location.search;
+    o.landing = location.origin + location.pathname + location.search;
     o.referrer = document.referrer || "";
   }
   return o;
