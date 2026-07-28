@@ -11,12 +11,49 @@ var ADS_ID = "AW-18352922263";
 var ADS_CONVERSION_LABEL = "mFpNCMLhiNccEJe9ra9E";
 
 document.addEventListener("DOMContentLoaded", function () {
+  memoriserProvenance();
   var burger = document.querySelector(".burger");
   var menu = document.querySelector("nav.menu");
   if (burger && menu) burger.addEventListener("click", function () { menu.classList.toggle("open"); });
   initSousMenus();
   initDevis();
 });
+
+/* --- Provenance du visiteur ---------------------------------------------
+   Enregistre, a la PREMIERE page vue de la session, la page d'arrivee, le
+   referent et les parametres de campagne. Le visiteur navigue souvent avant
+   d'arriver au formulaire : sans cette memorisation, on ne verrait que la
+   page du devis. Stocke en sessionStorage (efface a la fermeture de l'onglet). */
+function memoriserProvenance() {
+  try {
+    if (sessionStorage.getItem("vd_landing")) return;   /* deja enregistre */
+    var p = new URLSearchParams(location.search);
+    sessionStorage.setItem("vd_landing", location.pathname + location.search);
+    sessionStorage.setItem("vd_referrer", document.referrer || "");
+    sessionStorage.setItem("vd_gclid", p.get("gclid") || "");
+    sessionStorage.setItem("vd_utm_source", p.get("utm_source") || "");
+    sessionStorage.setItem("vd_utm_medium", p.get("utm_medium") || "");
+    sessionStorage.setItem("vd_utm_campaign", p.get("utm_campaign") || "");
+    sessionStorage.setItem("vd_utm_term", p.get("utm_term") || "");
+  } catch (e) { /* navigation privee : on continue sans provenance */ }
+}
+
+function lireProvenance() {
+  var o = {};
+  try {
+    o.landing = sessionStorage.getItem("vd_landing") || (location.pathname + location.search);
+    o.referrer = sessionStorage.getItem("vd_referrer") || "";
+    o.gclid = sessionStorage.getItem("vd_gclid") || "";
+    o.utm_source = sessionStorage.getItem("vd_utm_source") || "";
+    o.utm_medium = sessionStorage.getItem("vd_utm_medium") || "";
+    o.utm_campaign = sessionStorage.getItem("vd_utm_campaign") || "";
+    o.utm_term = sessionStorage.getItem("vd_utm_term") || "";
+  } catch (e) {
+    o.landing = location.pathname + location.search;
+    o.referrer = document.referrer || "";
+  }
+  return o;
+}
 
 /* Sous-menus repliables (mobile) : toute la ligne bascule le sous-menu.
    Sur desktop, le survol CSS gere l'ouverture et le lien navigue normalement. */
@@ -53,7 +90,18 @@ function initDevis() {
   if (!box) return;
   var steps = box.querySelectorAll(".f-step");
   var bar = box.querySelector(".progress > div");
-  var data = { site: SITE_ID, page: location.pathname };
+  var prov = lireProvenance();
+  var data = {
+    site: SITE_ID,
+    page: location.pathname,          /* page du formulaire */
+    landing: prov.landing,            /* page d'arrivee sur le site */
+    referrer: prov.referrer,          /* d'ou vient le visiteur */
+    gclid: prov.gclid,                /* present => clic Google Ads */
+    utm_source: prov.utm_source,
+    utm_medium: prov.utm_medium,
+    utm_campaign: prov.utm_campaign,
+    utm_term: prov.utm_term
+  };
   var idx = 0;
 
   /* scroll : jamais au chargement (sinon on saute le titre de la page),

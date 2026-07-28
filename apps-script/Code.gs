@@ -57,7 +57,12 @@ var HEADERS = [
   'Details',
   'Budget',
   'Delai',
-  'Page source'
+  'Source',                 // deduit : Google Ads / SEO Google / Direct...
+  'Page d arrivee',         // 1re page vue sur le site (revele le sujet/la ville)
+  'Campagne',               // utm_campaign (ou "Google Ads" si gclid seul)
+  'Mot cle',                // utm_term
+  'Referent',               // document.referrer
+  'Page source'             // page ou le formulaire a ete envoye
 ];
 
 // entete de colonne -> nom du champ envoye par le formulaire.
@@ -73,8 +78,36 @@ var FIELD_MAP = {
   'Details': 'details',
   'Budget': 'budget',
   'Delai': 'delai',
+  'Page d arrivee': 'landing',
+  'Mot cle': 'utm_term',
+  'Referent': 'referrer',
   'Page source': 'page'
+  // 'Source' et 'Campagne' sont calcules (voir source_() et campagne_()).
 };
+
+/* Deduit la provenance lisible a partir du gclid, des utm et du referent. */
+function source_(d) {
+  if (d.gclid) return 'Google Ads';
+  var s = (d.utm_source || '').toLowerCase();
+  var m = (d.utm_medium || '').toLowerCase();
+  if (s) {
+    if (m.indexOf('cpc') > -1 || m.indexOf('paid') > -1) return 'Paye (' + d.utm_source + ')';
+    return d.utm_source;
+  }
+  var r = (d.referrer || '').toLowerCase();
+  if (!r) return 'Direct';
+  if (r.indexOf('google.') > -1) return 'SEO Google';
+  if (r.indexOf('bing.') > -1) return 'SEO Bing';
+  if (r.indexOf('qwant') > -1 || r.indexOf('duckduckgo') > -1 || r.indexOf('ecosia') > -1) return 'SEO autre';
+  if (r.indexOf('facebook') > -1 || r.indexOf('instagram') > -1 || r.indexOf('linkedin') > -1) return 'Reseaux sociaux';
+  if (r.indexOf('mon-mur-vegetal.fr') > -1) return 'Interne';
+  try { return 'Referent : ' + r.split('/')[2]; } catch (e) { return 'Referent'; }
+}
+
+function campagne_(d) {
+  if (d.utm_campaign) return d.utm_campaign;
+  return d.gclid ? 'Google Ads' : '';
+}
 
 /* ============================ POINT D'ENTREE ============================ */
 
@@ -97,6 +130,8 @@ function doPost(e) {
       var idx = cols[header];
       if (idx) { var v = d[FIELD_MAP[header]]; row[idx - 1] = (v == null ? '' : v); }
     }
+    if (cols['Source']) row[cols['Source'] - 1] = source_(d);
+    if (cols['Campagne']) row[cols['Campagne'] - 1] = campagne_(d);
     sheet.appendRow(row);
 
     notify_(d);
@@ -145,6 +180,9 @@ function notify_(d) {
     'Budget    : ' + v_(d.budget) + '\n' +
     'Delai     : ' + v_(d.delai) + '\n' +
     'Details   : ' + v_(d.details) + '\n' +
+    'Source    : ' + v_(source_(d)) + '\n' +
+    'Arrivee   : ' + v_(d.landing) + '\n' +
+    'Campagne  : ' + v_(campagne_(d)) + '\n' +
     'Page      : ' + v_(d.page) + '\n' +
     'Suivi     : ' + link;
 
@@ -219,7 +257,8 @@ function emailHtml_(d, link, intro) {
         '<a href="' + link + '" style="display:inline-block;background:' + t.header + ';color:#ffffff;text-decoration:none;padding:13px 24px;font:600 13px/1 Helvetica,Arial,sans-serif;letter-spacing:1px;">Ouvrir la feuille de suivi &rarr;</a>' +
       '</td></tr>' +
       '<tr><td style="background:' + t.panel + ';border-top:1px solid ' + t.line + ';padding:15px 30px;color:#6f7873;font:400 12px/1.5 Helvetica,Arial,sans-serif;">' +
-        esc_(t.brand) + ' &middot; ' + esc_(v_(d.site)) + '&nbsp;&middot;&nbsp; Page : ' + esc_(v_(d.page)) +
+        esc_(t.brand) + ' &middot; ' + esc_(v_(d.site)) + '&nbsp;&middot;&nbsp; Source : ' + esc_(source_(d)) +
+        '<br>Arrivee : ' + esc_(v_(d.landing)) + '&nbsp;&middot;&nbsp; Formulaire : ' + esc_(v_(d.page)) +
       '</td></tr>' +
     '</table>' +
   '</div>';
@@ -255,7 +294,10 @@ function testLeadMurVegetal() {
     email: 'sebastien.monnier59@gmail.com', code_postal: '59000', type_projet: 'Mur vegetal stabilise',
     implantation: 'Interieur', surface: '5 a 15 m2', contexte: 'Bureaux entreprise',
     details: 'Test complet du formulaire mur vegetal', budget: '2000 a 5000 EUR',
-    delai: '1 a 3 mois', page: '/devis-mur-vegetal.html'
+    delai: '1 a 3 mois', page: '/devis-mur-vegetal.html',
+    landing: '/mur-vegetal-marseille.html?gclid=TEST123', gclid: 'TEST123',
+    utm_campaign: 'Mur vegetal - Coeur - FR', utm_term: 'mur vegetal stabilise',
+    referrer: 'https://www.google.com/'
   }});
 }
 
