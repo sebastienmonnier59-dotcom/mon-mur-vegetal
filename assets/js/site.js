@@ -6,11 +6,99 @@ var SITE_ID = "mon-mur-vegetal.fr";
 /* Google Ads — conversion "lead" a l'envoi du formulaire.
    Coller le libelle de l'action de conversion entre les guillemets
    (Google Ads > Objectifs > Conversions > l'action > "Etiquette de conversion").
-   Tant qu'il est vide, seul l'evenement generate_lead (GA4) est envoye. */
+   Tant qu'il est vide, seul l'evenement generate_lead est envoye.
+   Rien n'est envoye sans consentement (voir initConsentement). */
 var ADS_ID = "AW-18352922263";
 var ADS_CONVERSION_LABEL = "mFpNCMLhiNccEJe9ra9E";
 
+/* --- Consentement cookies ------------------------------------------------
+   Aucun script Google n'est charge tant que le visiteur n'a pas accepte
+   (consent mode "basique"). Sans accord, les appels gtag() du formulaire
+   restent dans dataLayer et ne partent nulle part. Le choix est garde
+   6 mois, puis redemande. */
+var CONSENT_KEY = "vd_consent";
+var CONSENT_DUREE = 1000 * 60 * 60 * 24 * 182;
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+
+function lireConsentement() {
+  try {
+    var c = JSON.parse(localStorage.getItem(CONSENT_KEY) || "null");
+    if (c && (Date.now() - c.t) < CONSENT_DUREE) return c.v;
+  } catch (e) {}
+  return null;
+}
+
+function enregistrerConsentement(v) {
+  try { localStorage.setItem(CONSENT_KEY, JSON.stringify({ v: v, t: Date.now() })); } catch (e) {}
+}
+
+function chargerGoogleAds() {
+  if (window.__adsCharge) return;
+  window.__adsCharge = true;
+  gtag("consent", "default", { ad_storage: "granted", ad_user_data: "granted", ad_personalization: "denied", analytics_storage: "denied" });
+  gtag("js", new Date());
+  gtag("config", ADS_ID);
+  var s = document.createElement("script");
+  s.async = true;
+  s.src = "https://www.googletagmanager.com/gtag/js?id=" + ADS_ID;
+  document.head.appendChild(s);
+}
+
+function initConsentement() {
+  var choix = lireConsentement();
+  if (choix === "granted") chargerGoogleAds();
+  if (!choix) afficherBanniere();
+  document.querySelectorAll("[data-cookies]").forEach(function (a) {
+    a.addEventListener("click", function (e) { e.preventDefault(); afficherBanniere(); });
+  });
+}
+
+function afficherBanniere() {
+  if (document.querySelector(".cookies")) return;
+  var b = document.createElement("div");
+  b.className = "cookies";
+  b.setAttribute("role", "dialog");
+  b.setAttribute("aria-label", "Gestion des cookies");
+  b.innerHTML =
+    '<p>Avec votre accord, nous utilisons un cookie Google Ads pour mesurer l\'efficacit\u00e9 de nos annonces. Rien n\'est d\u00e9pos\u00e9 si vous refusez. <a href="/politique-confidentialite.html#cookies">En savoir plus</a></p>' +
+    '<div class="cookies-btns"><button type="button" class="btn ghost" data-v="denied">Refuser</button><button type="button" class="btn ghost" data-v="granted">Accepter</button></div>';
+  b.querySelectorAll("button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      enregistrerConsentement(btn.dataset.v);
+      if (btn.dataset.v === "granted") chargerGoogleAds();
+      b.remove();
+      document.body.classList.remove("cookies-ouvert");
+    });
+  });
+  document.body.appendChild(b);
+  document.body.classList.add("cookies-ouvert");
+}
+
+/* --- Bouton devis collant (mobile) ----------------------------------------
+   Sur les longues pages, le formulaire est en bas : un bouton reste visible
+   en bas d'ecran, et s'efface quand le formulaire ou le bouton du haut est
+   a l'ecran. */
+function initCtaCollant() {
+  var cible = document.getElementById("devis-inline");
+  if (!cible || !("IntersectionObserver" in window)) return;
+  var cta = document.createElement("a");
+  cta.className = "cta-collant";
+  cta.href = "#devis";
+  cta.textContent = "Simuler mon devis";
+  document.body.appendChild(cta);
+  var visibles = new Set();
+  var obs = new IntersectionObserver(function (entrees) {
+    entrees.forEach(function (e) { if (e.isIntersecting) visibles.add(e.target); else visibles.delete(e.target); });
+    cta.classList.toggle("on", visibles.size === 0);
+  });
+  obs.observe(cible);
+  var haut = document.querySelector('section a.btn.big[href="#devis"]');
+  if (haut) obs.observe(haut);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
+  initConsentement();
   memoriserProvenance();
   var burger = document.querySelector(".burger");
   var menu = document.querySelector("nav.menu");
@@ -18,6 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
   initSousMenus();
   injecterDevisEnPage();
   initDevis();
+  initCtaCollant();
 });
 
 /* --- Formulaire integre en bas de page ----------------------------------
@@ -54,7 +143,7 @@ var DEVIS_MARKUP =
 '<div class="progress"><div></div></div>' +
 '<div class="devis-inner">' +
   '<div class="f-step on">' +
-    '<h2>Quel type de projet envisagez-vous ?</h2>' +
+    '<p class="f-titre">Quel type de projet envisagez-vous ?</p>' +
     '<p class="help">Sélectionnez ce qui s\'en rapproche le plus — rien n\'est figé à ce stade.</p>' +
     '<div class="choices">' +
       '<div class="choice" data-name="type_projet" data-value="Mur vegetal stabilise">Mur végétal stabilisé<small>sans arrosage ni entretien</small></div>' +
@@ -64,7 +153,7 @@ var DEVIS_MARKUP =
     '</div>' +
   '</div>' +
   '<div class="f-step">' +
-    '<h2>Plutôt intérieur ou extérieur ?</h2>' +
+    '<p class="f-titre">Plutôt intérieur ou extérieur ?</p>' +
     '<p class="help">Cela conditionne le système végétal et les contraintes de pose.</p>' +
     '<div class="choices">' +
       '<div class="choice" data-name="implantation" data-value="Interieur">Intérieur<small>bureau, hall, commerce…</small></div>' +
@@ -74,7 +163,7 @@ var DEVIS_MARKUP =
     '<p style="margin-top:-8px"><button type="button" class="btn ghost prev" style="padding:8px 18px;font-size:14px">← Retour</button></p>' +
   '</div>' +
   '<div class="f-step">' +
-    '<h2>Quelle surface à végétaliser ?</h2>' +
+    '<p class="f-titre">Quelle surface à végétaliser ?</p>' +
     '<p class="help">Une estimation suffit : hauteur × largeur de la zone concernée.</p>' +
     '<div class="choices">' +
       '<div class="choice" data-name="surface" data-value="Moins de 5 m2">Moins de 5 m²<small>petit pan de mur, vitrine</small></div>' +
@@ -85,7 +174,7 @@ var DEVIS_MARKUP =
     '<p style="margin-top:-8px"><button type="button" class="btn ghost prev" style="padding:8px 18px;font-size:14px">← Retour</button></p>' +
   '</div>' +
   '<div class="f-step">' +
-    '<h2>Dans quel contexte ?</h2>' +
+    '<p class="f-titre">Dans quel contexte ?</p>' +
     '<p class="help">Le lieu détermine les contraintes techniques et le partenaire à solliciter.</p>' +
     '<div class="choices">' +
       '<div class="choice" data-name="contexte" data-value="Bureaux entreprise">Bureaux &amp; entreprise<small>hall, open space, réunion</small></div>' +
@@ -96,7 +185,7 @@ var DEVIS_MARKUP =
     '<p style="margin-top:-8px"><button type="button" class="btn ghost prev" style="padding:8px 18px;font-size:14px">← Retour</button></p>' +
   '</div>' +
   '<div class="f-step">' +
-    '<h2>Pour quand est votre projet ?</h2>' +
+    '<p class="f-titre">Pour quand est votre projet ?</p>' +
     '<p class="help">Le délai nous aide à orienter la demande vers le bon installateur.</p>' +
     '<div class="choices">' +
       '<div class="choice" data-name="delai" data-value="Moins d un mois">Moins d\'un mois<small>c\'est urgent</small></div>' +
@@ -107,7 +196,7 @@ var DEVIS_MARKUP =
     '<p style="margin-top:-8px"><button type="button" class="btn ghost prev" style="padding:8px 18px;font-size:14px">← Retour</button></p>' +
   '</div>' +
   '<div class="f-step">' +
-    '<h2>Où recevoir votre devis ?</h2>' +
+    '<p class="f-titre">Où recevoir votre devis ?</p>' +
     '<p class="help">Vos coordonnées servent uniquement à traiter votre demande — jamais revendues à des tiers.</p>' +
     '<form>' +
       '<div class="fields">' +
@@ -128,7 +217,7 @@ var DEVIS_MARKUP =
 '</div>' +
 '<div class="merci" style="display:none">' +
   '<div class="pic">🌿</div>' +
-  '<h2>Votre demande est partie</h2>' +
+  '<p class="f-titre">Votre demande est partie</p>' +
   '<p>Un installateur partenaire vous recontacte sous 24 h ouvrées.</p>' +
 '</div>';
 
