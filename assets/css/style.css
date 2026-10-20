@@ -139,7 +139,7 @@ figure.illus figcaption { color: var(--gris); font-size: 13px; padding: 14px 2px
 .f-step { display: none; }
 .f-step.on { display: block; animation: fade .35s; }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
-.f-step h2 { font-family: var(--titre); color: var(--foret); font-size: 26px; margin-bottom: 10px; font-weight: 400; }
+.f-step h2, .f-step .f-titre { font-family: var(--titre); color: var(--foret); font-size: 26px; margin-bottom: 10px; font-weight: 400; }
 .f-step p.help { color: var(--gris); font-size: 15px; margin-bottom: 30px; font-weight: 300; }
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 30px; }
 .choice { border: 1px solid var(--ligne); padding: 22px 18px; cursor: pointer; font-size: 15.5px; text-align: center; transition: all .2s; background: var(--craie); color: var(--encre); }
@@ -154,11 +154,11 @@ figure.illus figcaption { color: var(--gris); font-size: 13px; padding: 14px 2px
 .rgpd { font-size: 12px; color: var(--gris); margin-top: 20px; font-weight: 300; }
 .merci { text-align: center; padding: 40px 10px; }
 .merci .pic { font-size: 50px; margin-bottom: 18px; }
-.merci h2 { font-family: var(--titre); color: var(--foret); margin-bottom: 14px; font-size: 28px; font-weight: 400; }
+.merci h2, .merci .f-titre { font-family: var(--titre); color: var(--foret); margin-bottom: 14px; font-size: 28px; font-weight: 400; }
 
 /* ---------- Footer ---------- */
 footer.site { background: var(--foret); color: var(--sauge); padding: 76px 0 32px; font-size: 14.5px; font-weight: 300; }
-footer.site .cols { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr; gap: 34px; margin-bottom: 48px; }
+footer.site .cols { display: grid; grid-template-columns: 1.5fr repeat(5, 1fr); gap: 34px; margin-bottom: 48px; }
 footer.site h4 { color: var(--craie); font-size: 11px; letter-spacing: 2.6px; text-transform: uppercase; margin-bottom: 18px; font-weight: 400; }
 footer.site a { color: var(--sauge); text-decoration: none; display: block; padding: 5px 0; }
 footer.site a:hover { color: var(--craie); }
@@ -207,3 +207,87 @@ body.landing .hero .container { padding-top: 70px; padding-bottom: 70px; }
 
 /* Ancre du formulaire integre : degage le header collant */
 #devis, #devis-inline { scroll-margin-top: 120px; }
+
+/* ---------- Header mobile compact + bouton devis ---------- */
+.nav-devis { display: none; }
+@media (max-width: 980px) {
+  .nav { padding: 10px 0; gap: 12px; }
+  .logo small { display: none; }
+  .logo b { font-size: 20px; letter-spacing: 3px; }
+  .logo svg { width: 32px; height: 32px; }
+  .nav-devis { display: inline-flex; align-items: center; margin-left: auto; padding: 10px 16px; min-height: 44px; font-size: 12px; letter-spacing: 1.6px; }
+  .burger { min-width: 44px; min-height: 44px; }
+}
+
+/* ---------- Bandeau cookies ---------- */
+.cookies { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 100; max-width: 760px; margin: 0 auto; background: var(--craie); border: 1px solid var(--ligne); box-shadow: var(--shadow); padding: 20px 24px; display: flex; gap: 20px; align-items: center; }
+.cookies p { font-size: 14px; color: var(--encre); margin: 0; line-height: 1.6; }
+.cookies-btns { display: flex; gap: 10px; flex-shrink: 0; }
+.cookies .btn { padding: 12px 20px; min-height: 44px; }
+@media (max-width: 640px) {
+  .cookies { flex-direction: column; align-items: stretch; }
+  .cookies-btns .btn { flex: 1; }
+}
+
+/* ---------- Bouton devis collant (mobile) ---------- */
+.cta-collant { display: none; }
+@media (max-width: 980px) {
+  .cta-collant { display: block; position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 60; background: var(--foret); color: #fff; text-align: center; padding: 16px; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; box-shadow: var(--shadow); border-radius: var(--radius); transform: translateY(160%); transition: transform .25s; }
+  .cta-collant.on { transform: none; }
+  body.cookies-ouvert .cta-collant { transform: translateY(160%); }
+}
+
+/* ---------- Listes ---------- */
+ul.grid-3, ul.grid-2, ol.steps { list-style: none; padding: 0; margin: 0; }
+ul.points { list-style: none; padding: 0; margin: 0 0 28px; }
+ul.points li { position: relative; padding-left: 24px; margin-bottom: 10px; }
+ul.points li::before { content: ""; position: absolute; left: 3px; top: .72em; width: 8px; height: 8px; border-radius: 50%; background: var(--sauge); }
+ol.points { padding-left: 22px; margin: 0 0 28px; }
+ol.points li { margin-bottom: 10px; padding-left: 4px; }
+.card ul.points { font-size: 15.5px; color: var(--gris); }
+.card ul.points li { margin-bottom: 6px; }
+section.foret ul.points { color: var(--lin-2); }
+
+/* ---------- En bref ---------- */
+.en-bref { max-width: 760px; margin: 40px auto 0; text-align: left; border-left: 3px solid var(--sauge); background: var(--lin); padding: 24px 30px 8px; }
+section.alt .en-bref { background: var(--craie); }
+.en-bref-titre { font-family: var(--titre); font-size: 20px; color: var(--foret); margin-bottom: 12px; }
+.en-bref ul.points { font-size: 16px; }
+
+/* ---------- Date de mise a jour ---------- */
+.maj { font-size: 13px; color: var(--gris); margin-top: 18px; letter-spacing: .3px; }
+.hero .maj { color: var(--sauge); }
+
+/* ---------- Legende des tableaux ---------- */
+table.prix caption { caption-side: bottom; text-align: left; font-size: 13px; color: var(--gris); padding: 12px 2px 0; }
+section.foret table.prix caption { color: var(--sauge); }
+
+/* ---------- Zones tactiles ---------- */
+.card a.more { display: inline-block; padding: 12px 0 6px; }
+footer.site a { padding: 10px 0; }
+
+/* Mobile : les boutons passent a la ligne (un bouton large en nowrap
+   elargissait la page a ~474 px et faisait dezoomer tout l'ecran). */
+@media (max-width: 980px) {
+  .btn { white-space: normal; text-align: center; }
+  .btn.big { padding: 16px 24px; letter-spacing: 1.6px; }
+  .nav-devis { white-space: nowrap; }
+}
+
+/* ---------- Liens villes ---------- */
+ul.villes { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+ul.villes a { display: inline-block; padding: 11px 18px; border: 1px solid var(--ligne); background: var(--craie); color: var(--foret); text-decoration: none; font-size: 14.5px; }
+ul.villes a:hover { border-color: var(--foret); }
+
+/* En-tetes de ligne des tableaux : meme rendu qu'une cellule */
+table.prix tbody th { text-align: left; color: var(--encre); padding: 17px 20px; border-bottom: 1px solid var(--ligne); font-size: 15.5px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+section.foret table.prix tbody th { color: var(--encre); }
+
+/* <picture> (WebP + repli JPEG) : transparent pour la mise en page */
+picture { display: contents; }
+
+/* Zones tactiles : logo et liens "→" des cartes a 44 px minimum */
+.logo { min-height: 44px; }
+.card a.more { padding: 14px 0 8px; }
+p.sub-title + .maj { margin-top: -30px; }
+.hero .maj { margin: -18px 0 26px; }
