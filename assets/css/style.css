@@ -291,3 +291,14 @@ picture { display: contents; }
 .card a.more { padding: 14px 0 8px; }
 p.sub-title + .maj { margin-top: -30px; }
 .hero .maj { margin: -18px 0 26px; }
+
+/* ---------- Blog : colonne de lecture ---------- */
+.prose { max-width: 740px; }
+.prose p { margin-bottom: 20px; }
+.prose h3 { font-family: var(--titre); font-size: 23px; color: var(--foret); font-weight: 400; margin: 36px 0 12px; line-height: 1.35; }
+.prose .table-wrap { margin: 10px 0 30px; }
+.prose ul.points, .prose ol.points { margin-bottom: 26px; }
+.prose blockquote { border-left: 3px solid var(--sauge); padding: 4px 0 4px 20px; margin: 0 0 24px; color: var(--gris); }
+.kicker a { color: inherit; text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; margin: -14px 0; }
+ul.grid-3 .card h3 a, ul.grid-2 .card h3 a { color: inherit; text-decoration: none; }
+@media (max-width: 760px) { .prose h3 { font-size: 21px; } }
