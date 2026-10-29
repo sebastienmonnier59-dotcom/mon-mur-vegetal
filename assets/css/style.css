@@ -302,3 +302,42 @@ p.sub-title + .maj { margin-top: -30px; }
 .kicker a { color: inherit; text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; margin: -14px 0; }
 ul.grid-3 .card h3 a, ul.grid-2 .card h3 a { color: inherit; text-decoration: none; }
 @media (max-width: 760px) { .prose h3 { font-size: 21px; } }
+
+/* ---------- Refonte visuelle : hero photo, confiance, galerie, textures ---------- */
+.hero { min-height: clamp(540px, 80vh, 780px); display: flex; align-items: center; }
+.hero .container { width: 100%; }
+.hero-bg { opacity: 1; }
+.hero-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14,30,21,.58) 0%, rgba(14,30,21,.70) 55%, rgba(14,30,21,.86) 100%); }
+.hero p.maj { color: var(--sauge); }
+.confiance { list-style: none; padding: 0; margin: 34px auto 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 26px; font-size: 14px; color: var(--lin-2); max-width: 980px; }
+.confiance li { display: inline-flex; align-items: center; gap: 8px; }
+.confiance svg { width: 18px; height: 18px; stroke: var(--sauge); flex: none; }
+section.foret { background: linear-gradient(rgba(22,44,32,.93), rgba(22,44,32,.93)), url("../img/mousse-pierre-sombre-800.webp") center / cover; }
+figure.illus img { height: 460px; }
+.card .media img { height: 200px; }
+.galerie { list-style: none; padding: 0; margin: 10px 0 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 210px; gap: 10px; }
+.galerie li { position: relative; overflow: hidden; border-radius: var(--radius); background: rgba(255,255,255,.06); }
+.galerie li.grand { grid-column: span 2; grid-row: span 2; }
+.galerie li.haut { grid-row: span 2; }
+.galerie img { width: 100%; height: 100%; object-fit: cover; transition: transform .7s; }
+.galerie li:hover img { transform: scale(1.04); }
+.galerie a { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 14px 16px; color: #fff; text-decoration: none; font-size: 13.5px; background: linear-gradient(180deg, rgba(10,20,14,0) 45%, rgba(10,20,14,.78)); }
+.galerie a span { font-family: var(--titre); font-size: 19px; line-height: 1.25; }
+.galerie a:focus-visible { outline: 2px solid var(--sauge); outline-offset: -2px; }
+.note-photos { font-size: 12.5px; color: var(--sauge); margin-top: 12px; }
+@media (max-width: 980px) {
+  .galerie { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 180px; }
+  figure.illus img { height: 300px; }
+}
+@media (max-width: 520px) {
+  .galerie { grid-auto-rows: 150px; }
+  .galerie li.grand { grid-row: span 1; }
+  .galerie li.haut { grid-row: span 1; }
+  .galerie li:last-child { grid-column: span 2; }
+  .galerie a { padding: 10px 12px; font-size: 12.5px; }
+  .galerie a span { font-size: 16px; }
+  .hero { min-height: 0; }
+  .confiance { flex-direction: column; align-items: center; gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .galerie img, .media img { transition: none; } }
+.galerie picture, .media picture { display: block; height: 100%; }
